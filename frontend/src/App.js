@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import networkInfo from './wallet/network_info';
 import connectWallet from './wallet/connect';
+import { calculateFee, GasPrice } from "@cosmjs/stargate";
 
 function App() {
   // connectWallet에서 받아올 값
@@ -13,6 +14,9 @@ function App() {
   // PLAY 버튼의 visibility 속성을 위한 변수
   const [visible, setVisible] = useState("hidden");
   const navigate = useNavigate();
+  // const fs = require("fs");
+  const [isUpload, setIsUpload] = useState(false);
+  const [wasm, setWasm] = useState();
 
   // connectWallet 으로 전달할 함수
   const getInfo = (client, address, balance, chainId) => {
@@ -32,6 +36,17 @@ function App() {
     setVisible("hidden");
   }
 
+  const uploadContract = async() => {
+    if (client) {
+      // const wasm = ...
+      const gasPrice = GasPrice.fromString("0.025" + balance.denom);
+      const uploadFee = calculateFee(300_000, gasPrice);
+      const receipt = await client.upload(address, wasm, uploadFee);
+      console.log(receipt);
+      setIsUpload(true);
+    }
+  }
+
   // 네트워크 별로 chainId에 따라서 DISCONNECT와 CONNECT 버튼이 나타나도록 구현
   const renderBtn = () => {
     return Object.keys(networkInfo).map((id) => {
@@ -41,7 +56,7 @@ function App() {
         )
       }
       return (
-        <button type='button' onClick={event => connectWallet(event, networkInfo[id], {getInfo})} className='connect-btn'> {networkInfo[id].chainName} </button>
+        <button type='button' onClick={event => connectWallet(event, networkInfo[id], {getInfo})} className='connect-btn'> Connect Wallet (Osmosis Testnet) </button>
       )
     })
   }
@@ -62,22 +77,17 @@ function App() {
   const playGame = () => {
     return (
       <div className="menu">
+        {/* <label for="fname">First Name</label>
+        <input type="text" id="fname" name="firstname" placeholder="Your name.."></input> */}
         <button
           className="play-btn"
-          onClick={() => {
-            navigate("/play", {
-              state: {
-                address: address,
-                denom: balance.denom,
-                chainId: chainId,
-              },
-            });
-          }} style={{visibility: visible}}
+          onClick={
+            async() => await uploadContract()
+          } style={{visibility: visible}}
         >
-          <span>PLAY</span>
+          <span>Deploy contract</span>
         </button>
-        {!client && (<p>Choose your network and Connect wallet</p>)}
-        {client && (<p>Click as many CosmWasm Icon as you can within 15 seconds!</p>)}
+        {!client && (<p>Ewhachain Cosmos teaching session</p>)}
       </div>
     );
   };
@@ -86,8 +96,7 @@ function App() {
     <div className="App">
       <header>
         <div className='header-titles'>
-          <img alt="Cosmwasm Logo" className='cosmwasm-logo' src='/cosmwasm-logo.svg'/>
-          <h1>Clicker Game</h1>
+          <h1>CosmWasm Teaching dApp</h1>
         </div>
       </header>
       <div className='App-container'>

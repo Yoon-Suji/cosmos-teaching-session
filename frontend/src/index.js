@@ -15,11 +15,6 @@ root.render(
           <Route path="/play" element={<Play />}/>
         </Routes>
       </BrowserRouter>
-
-      <div className='footer-container'>
-        <span>Made with</span> 
-        <img src='./dsrv.png' id='footer-logo' alt='dsrv-logo'></img>
-      </div>
     </div>
   </React.StrictMode>
 );
