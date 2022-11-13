@@ -56,6 +56,7 @@
   white-space: nowrap;
   cursor: pointer;
   height: 40px;
+  margin: 5px;
 }
 
 .connect-wallet {

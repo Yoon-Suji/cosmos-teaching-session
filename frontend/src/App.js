@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import networkInfo from './wallet/network_info';
 import connectWallet from './wallet/connect';
+import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+import reset from "./contract/reset";
+import get_count from "./contract/get_count";
+import increment from "./contract/increment";
 import { calculateFee, GasPrice } from "@cosmjs/stargate";
 
 function App() {
@@ -11,6 +15,7 @@ function App() {
   const [address, setAddress] = useState();
   const [balance, setBalance] = useState();
   const [chainId, setChainId] = useState();
+  const [count, setCount] = useState();
   // PLAY 버튼의 visibility 속성을 위한 변수
   const [visible, setVisible] = useState("hidden");
   const navigate = useNavigate();
@@ -38,12 +43,18 @@ function App() {
 
   const uploadContract = async() => {
     if (client) {
-      // const wasm = ...
-      const gasPrice = GasPrice.fromString("0.025" + balance.denom);
-      const uploadFee = calculateFee(300_000, gasPrice);
-      const receipt = await client.upload(address, wasm, uploadFee);
-      console.log(receipt);
-      setIsUpload(true);
+      fetch('temp.json').then(res => {
+        res.json();
+        // Buffer.from(res, 'base64');
+      }).then((bytes) => {
+        console.log(bytes);
+        console.log(typeof bytes)
+      })
+      // const gasPrice = GasPrice.fromString("0.025" + balance.denom);
+      // const uploadFee = calculateFee(300_000, gasPrice);
+      // const receipt = await client.upload(address, wasm, uploadFee);
+      // console.log(receipt);
+      // setIsUpload(true);
     }
   }
 
@@ -82,7 +93,7 @@ function App() {
         <button
           className="play-btn"
           onClick={
-            async() => await uploadContract()
+            async() => await getCount()
           } style={{visibility: visible}}
         >
           <span>Deploy contract</span>
@@ -90,6 +101,24 @@ function App() {
         {!client && (<p>Ewhachain Cosmos teaching session</p>)}
       </div>
     );
+  };
+
+  const getCount = async() => {
+    const result = await get_count(client, chainId);
+    console.log(result);
+    setCount(result.count);
+  };
+
+  const incrementCount = async(count) => {
+    await increment(client, address, count, chainId, balance.denom);
+    const result = await get_count(client, chainId);
+    setCount(result.count);
+  };
+
+  const resetCount = async() => {
+    await reset(client, address, 0, chainId, balance.denom);
+    const result = await get_count(client, chainId);
+    setCount(result.count);
   };
 
   return (
@@ -101,7 +130,36 @@ function App() {
       </header>
       <div className='App-container'>
         <div className='App-menu-container'>
-          {playGame()}
+          <div className="menu">
+            <button
+              className="play-btn"
+              onClick={
+                async(e) => await getCount()
+              } style={{visibility: visible}}
+            >
+              <span>get_count</span>
+            </button>
+            <div>
+            <button
+              className="play-btn"
+              onClick={
+                async(e) => await incrementCount(1)
+              } style={{visibility: visible}}
+            >
+              <span>increment</span>
+            </button>
+            </div>
+            <button
+              className="play-btn"
+              onClick={
+                async(e) => await resetCount()
+              } style={{visibility: visible}}
+            >
+              <span>reset</span>
+            </button>
+            {!client && (<p>Ewhachain Cosmos teaching session</p>)}
+            {client && (<p>Count: {count}</p>)}
+          </div>
           <div className='connect-wallet'>
             {renderBtn()}
           </div>
