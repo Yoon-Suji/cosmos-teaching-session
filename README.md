@@ -7,3 +7,5 @@ EWHACHAIN Cosmos Teaching Session Resource Repository
 ## Frontend
 * Clicker Game using Counter Contract
 * Using Keplr Wallet
+## Reference
+* https://github.com/DSRV-DevGuild/cosmwasm-clicker-game.git
